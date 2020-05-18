@@ -24,7 +24,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'io.fabric'
+apply plugin: 'com.google.firebase.crashlytics'
 apply plugin: 'okreplay'
 apply from: '../../gradle/coverage.gradle'
 apply plugin: 'com.squareup.sqldelight'
@@ -128,6 +128,9 @@ android {
             shrinkResources true
             buildConfigField 'boolean', 'IS_DEBUG', 'false'
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            firebaseCrashlytics {
+                nativeSymbolUploadEnabled true
+            }
         }
     }
 
@@ -279,6 +282,9 @@ dependencies {
     implementation Libs.FIREBASE_MESSAGING
     implementation Libs.ANDROIDX_PALETTE
     implementation Libs.PLAY_CORE
+    implementation (Libs.FIREBASE_ANALYTICS) {
+        transitive = true
+    }
 
     /* Job Scheduler */
     implementation Libs.FIREBASE_JOB_DISPATCHER
@@ -289,12 +295,8 @@ dependencies {
     /* Qr Code */
     implementation(Libs.JOURNEY_ZXING) { transitive = false }
     implementation Libs.ZXING
-}
 
-crashlytics {
-    enableNdk true
-    androidNdkOut "../../debugSymbols"
-    androidNdkLibsOut "../../build/app/intermediates/transforms/stripDebugSymbol/release/0/lib"
+    implementation "com.google.firebase:firebase-crashlytics-ndk:17.0.0"
 }
 
 // Comment out this line if the reporting logic starts going wonky.

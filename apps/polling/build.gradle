@@ -19,7 +19,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'io.fabric'
+apply plugin: 'com.google.firebase.crashlytics'
 
 android {
     compileSdkVersion Versions.COMPILE_SDK
@@ -105,6 +105,10 @@ dependencies {
 
     /* Crashlytics */
     implementation(Libs.CRASHLYTICS) {
+        transitive = true
+    }
+
+    implementation (Libs.FIREBASE_ANALYTICS) {
         transitive = true
     }
 

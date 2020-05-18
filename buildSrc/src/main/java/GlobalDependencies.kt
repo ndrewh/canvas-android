@@ -26,14 +26,16 @@ object Versions {
     const val KOTLIN_COROUTINES = "1.2.1"
 
     /* Google, Play Services */
-    const val GOOGLE_SERVICES = "4.0.1"
+    const val GOOGLE_SERVICES = "4.3.3"
     const val ANDROIDX = "1.0.0"
     const val FIREBASE_JOB_DISPATCHER = "0.8.6"
     const val FIREBASE_CONFIG = "18.0.0"
 
     /* Others */
     const val APOLLO = "1.0.0-alpha5"
-    const val CRASHLYTICS = "2.6.8@aar"
+    const val CRASHLYTICS = "17.0.0"
+    const val ANALYTICS = "17.4.1"
+    const val FIREBASE_ANALYTICS = "17.4.1"
     const val PSPDFKIT = "6.0.3"
     const val EXOPLAYER = "2.9.6"
     const val PHOTO_VIEW = "2.3.0"
@@ -70,7 +72,7 @@ object Libs {
     const val ANDROIDX_VECTOR = "androidx.vectordrawable:vectordrawable:${Versions.ANDROIDX}"
 
     /* Play Services */
-    const val FIREBASE_MESSAGING = "com.google.firebase:firebase-messaging:19.0.0"
+    const val FIREBASE_MESSAGING = "com.google.firebase:firebase-messaging:20.1.7"
     const val PLAY_SERVICES_ANALYTICS = "com.google.android.gms:play-services-analytics:17.0.0"
     const val PLAY_SERVICES_WEARABLE = "com.google.android.gms:play-services-wearable:16.0.1"
     const val PLAY_SERVICES_AUTH = "com.google.android.gms:play-services-auth:16.0.1"
@@ -96,7 +98,8 @@ object Libs {
     const val ZXING = "com.google.zxing:core:3.3.0"
 
     /* Other */
-    const val CRASHLYTICS = "com.crashlytics.sdk.android:crashlytics:${Versions.CRASHLYTICS}"
+    const val CRASHLYTICS = "com.google.firebase:firebase-crashlytics:${Versions.CRASHLYTICS}"
+    const val FIREBASE_ANALYTICS = "com.google.firebase:firebase-analytics:${Versions.FIREBASE_ANALYTICS}"
     const val PSPDFKIT = "com.pspdfkit:pspdfkit:${Versions.PSPDFKIT}"
     const val EXOPLAYER = "com.google.android.exoplayer:exoplayer:${Versions.EXOPLAYER}"
     const val PHOTO_VIEW = "com.github.chrisbanes:PhotoView:${Versions.PHOTO_VIEW}"
@@ -105,7 +108,7 @@ object Libs {
 }
 
 object Plugins {
-    const val FABRIC = "io.fabric.tools:gradle:1.+"
+    const val FIREBASE_CRASHLYTICS =  "com.google.firebase:firebase-crashlytics-gradle:2.1.0"
     const val ANDROID_GRADLE_TOOLS = "com.android.tools.build:gradle:${Versions.ANDROID_GRADLE_TOOLS}"
     const val APOLLO = "com.apollographql.apollo:apollo-gradle-plugin:${Versions.APOLLO}"
     const val KOTLIN = "org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.KOTLIN}"

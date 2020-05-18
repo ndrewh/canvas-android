@@ -123,6 +123,10 @@ dependencies {
         transitive = true
     }
 
+    implementation (Libs.FIREBASE_ANALYTICS) {
+        transitive = true
+    }
+
     /* Support Dependencies */
     implementation Libs.ANDROIDX_ANNOTATION
     implementation Libs.ANDROIDX_APPCOMPAT

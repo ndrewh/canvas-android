@@ -22,7 +22,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.crashlytics.android.Crashlytics;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.instructure.canvasapi2.utils.APIHelper;
 import com.instructure.canvasapi2.utils.Logger;
 
@@ -61,40 +61,39 @@ public class LoggingUtility {
     }
 
     /**
-     * Logs using Crashlytics {@link Crashlytics#log(String)}
+     * Logs using Crashlytics {@link FirebaseCrashlytics#log(String)}
      * <p>
      *
      * @param msg The message to log to console
-     * @see Crashlytics#log(String)
+     * @see FirebaseCrashlytics#log(String)
      */
     public static void LogCrashlytics(String msg) {
         //Only log crashlytics.
-        if (Logger.canLogUserDetails()) Crashlytics.log(msg);
+        if (Logger.canLogUserDetails()) FirebaseCrashlytics.getInstance().log(msg);
     }
 
     /**
      * Posts the given url as an exception to Crashlytics
      *
      * @param url the url to post as an exception to Crashlytics
-     * @see com.crashlytics.android.Crashlytics#logException(Throwable)
      */
     public static void postCrashlyticsLogs(String url) {
-        if (Logger.canLogUserDetails()) Crashlytics.logException(getUrlAsException(url));
+        if (Logger.canLogUserDetails()) FirebaseCrashlytics.getInstance().recordException(getUrlAsException(url));
     }
 
     /**
-     * Logs Console {@link android.util.Log#d} and Crashlytics {@link Crashlytics#log(String)}}
+     * Logs Console {@link android.util.Log#d} and Crashlytics {@link FirebaseCrashlytics#log(String)}}
      * <p>
      *
      * @param context  The application context
      * @param priority The priority of the logging. Examples are {@link android.util.Log#DEBUG} and {@link android.util.Log#ERROR}
      * @param msg      The message to log to console
-     * @see Crashlytics#log(String)
+     * @see FirebaseCrashlytics#log(String)
      * @see android.util.Log#d
      */
     public static void Log(Context context, int priority, String msg) {
         //Will write to crashlytics and logcat
-        if (Logger.canLogUserDetails()) Crashlytics.log(priority, TAG, msg);
+        if (Logger.canLogUserDetails()) FirebaseCrashlytics.getInstance().log(priority + "/" + TAG + ": " + msg);
     }
 
     /**
@@ -111,7 +110,7 @@ public class LoggingUtility {
     }
 
     /**
-     * Logs Exception using HelpDesk, Console {@link android.util.Log#d}, and Crashlytics {@link Crashlytics#log(String)}
+     * Logs Exception using HelpDesk, Console {@link android.util.Log#d}, and Crashlytics {@link FirebaseCrashlytics#log(String)}
      * <p>
      *
      * @param context The application context
@@ -126,7 +125,7 @@ public class LoggingUtility {
         if (E == null) return "";
 
         if (crashlytics && Logger.canLogUserDetails()) {
-            Crashlytics.logException(E);
+            FirebaseCrashlytics.getInstance().recordException(E);
         }
 
         StringWriter sw = new StringWriter();
@@ -146,7 +145,7 @@ public class LoggingUtility {
     }
 
     /**
-     * Logs all data of Intent using HelpDesk, Console {@link android.util.Log#d}, and Crashlytics {@link Crashlytics#log(String)}
+     * Logs all data of Intent using HelpDesk, Console {@link android.util.Log#d}, and Crashlytics {@link FirebaseCrashlytics#log(String)}
      * <p>
      *
      * @param context The application context

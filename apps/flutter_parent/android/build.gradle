@@ -8,7 +8,7 @@ buildscript {
 
     dependencies {
         classpath Plugins.ANDROID_GRADLE_TOOLS
-        classpath Plugins.FABRIC
+        classpath "io.fabric.tools:gradle:1.+"
         classpath Plugins.GOOGLE_SERVICES
         classpath Plugins.KOTLIN
     }
