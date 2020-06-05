@@ -24,6 +24,9 @@ import com.instructure.canvasapi2.models.canvadocs.CanvaDocAnnotation
 import com.instructure.canvasapi2.models.canvadocs.CanvaDocCoordinate
 import com.instructure.canvasapi2.models.canvadocs.CanvaDocInkList
 import com.instructure.canvasapi2.utils.ApiPrefs
+import com.pdftron.pdf.*
+import com.pdftron.pdf.annots.Highlight
+import com.pdftron.pdf.utils.Utils
 import com.pspdfkit.annotations.*
 import com.pspdfkit.annotations.Annotation
 import java.util.*
@@ -40,6 +43,46 @@ fun CanvaDocAnnotation.convertCanvaDocAnnotationToPDF(context: Context) : Annota
         else -> null
     }
 }
+
+fun convertCanvaDocAnnotationToPdfTronHighlight(canvaDocAnnotation: CanvaDocAnnotation, doc: PDFDoc, page: Page, context: Context) : Annot? {
+    val rect = canvaDocAnnotation.rect?.let { Rect(it[0][0].toDouble(), it[1][1].toDouble(), it[1][0].toDouble(), it[0][1].toDouble()) }
+    val highlight = Highlight.create(doc, rect)
+    highlight.setUniqueID(canvaDocAnnotation.annotationId)
+    val colorPt = Utils.color2ColorPt(canvaDocAnnotation.getColorInt(ContextCompat.getColor(context, (R.color.canvasDefaultButton))))
+    highlight.setColor(colorPt)
+    highlight.contents = canvaDocAnnotation.contents
+    highlight.title = canvaDocAnnotation.userId
+
+    return highlight
+}
+/*
+fun coordsToListOfRectfs(coords: List<List<List<Float>>>?) : MutableList<RectF> {
+    val rectList = mutableListOf<RectF>()
+    coords?.let {
+        it.forEach {
+            val tempRect = RectF(it[0][0], it[0][1], it[3][0], it[3][1])
+            rectList.add(tempRect)
+        }
+    }
+
+    return rectList
+}
+
+private fun convertHighlightType(canvaDocAnnotation: CanvaDocAnnotation, context: Context): HighlightAnnotation {
+    val rectList = coordsToListOfRectfs(canvaDocAnnotation.coords)
+
+    val highLightAnnotation = CanvaHighlightAnnotation(CanvaPdfAnnotation(
+            page = canvaDocAnnotation.page,
+            rectList = rectList,
+            userId = canvaDocAnnotation.userId
+    ))
+    highLightAnnotation.contents = canvaDocAnnotation.contents
+    highLightAnnotation.color = canvaDocAnnotation.getColorInt(ContextCompat.getColor(context, (R.color.canvasDefaultButton)))
+    highLightAnnotation.name = canvaDocAnnotation.annotationId
+
+    return highLightAnnotation
+}
+ */
 
 fun Annotation.convertPDFAnnotationToCanvaDoc(canvaDocId: String) : CanvaDocAnnotation? {
     return when(type) {

@@ -197,7 +197,7 @@ class InitActivity : BasePresenterActivity<InitActivityPresenter, InitActivityVi
         presenter.loadData(true)
     }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
+    override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState?.putInt(SELECTED_TAB, selectedTab)
     }

@@ -23,6 +23,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Typeface
 import android.view.View
+import com.bumptech.glide.Glide
 import com.instructure.canvasapi2.models.Author
 import com.instructure.canvasapi2.models.BasicUser
 import com.instructure.canvasapi2.models.Conversation
@@ -77,21 +78,14 @@ object ProfileUtils {
     fun loadAvatarForUser(avatar: CircleImageView, name: String?, url: String?) {
         val context = avatar.context
         if (shouldLoadAltAvatarImage(url)) {
-            Picasso.with(context).cancelRequest(avatar)
+            Glide.with(context).clear(avatar)
             avatar.setAvatarImage(context, name)
         } else {
-            Picasso.with(context)
+            Glide.with(context)
                     .load(url)
-                    .fit()
                     .placeholder(R.drawable.recipient_avatar_placeholder)
                     .centerCrop()
-                    .into(avatar, object : Callback {
-                        override fun onSuccess() {}
-
-                        override fun onError() {
-                            avatar.setAvatarImage(context, name)
-                        }
-                    })
+                    .into(avatar)
         }
     }
 

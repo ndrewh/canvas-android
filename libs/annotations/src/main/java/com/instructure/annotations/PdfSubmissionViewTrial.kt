@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 - present Instructure, Inc.
+ * Copyright (C) 2020 - present Instructure, Inc.
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@
 package com.instructure.annotations
 
 import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Color
 import android.net.Uri
-import android.os.Bundle
 import android.os.Handler
 import android.util.TypedValue
-import android.view.*
+import android.view.Gravity
+import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.annotation.ColorRes
@@ -37,9 +36,9 @@ import com.instructure.annotations.AnnotationDialogs.FreeTextDialog
 import com.instructure.annotations.FileCaching.DocumentListenerSimpleDelegate
 import com.instructure.canvasapi2.managers.CanvaDocsManager
 import com.instructure.canvasapi2.models.ApiValues
-import com.instructure.canvasapi2.models.DocSession
 import com.instructure.canvasapi2.models.canvadocs.CanvaDocAnnotation
 import com.instructure.canvasapi2.models.canvadocs.CanvaDocAnnotationResponse
+import com.instructure.canvasapi2.models.DocSession
 import com.instructure.canvasapi2.utils.*
 import com.instructure.canvasapi2.utils.weave.StatusCallbackError
 import com.instructure.canvasapi2.utils.weave.awaitApi
@@ -50,15 +49,8 @@ import com.instructure.pandautils.utils.setGone
 import com.instructure.pandautils.utils.setVisible
 import com.instructure.pandautils.utils.toast
 import com.instructure.pandautils.views.ProgressiveCanvasLoadingView
-import com.pdftron.pdf.Annot
-import com.pdftron.pdf.Rect
-import com.pdftron.pdf.annots.Highlight
-import com.pdftron.pdf.config.ToolManagerBuilder
 import com.pdftron.pdf.config.ViewerBuilder
-import com.pdftron.pdf.config.ViewerConfig
 import com.pdftron.pdf.controls.PdfViewCtrlTabHostFragment
-import com.pdftron.pdf.model.FileInfo
-import com.pdftron.pdf.tools.ToolManager
 import com.pspdfkit.annotations.Annotation
 import com.pspdfkit.annotations.AnnotationFlags
 import com.pspdfkit.annotations.AnnotationProvider
@@ -92,7 +84,7 @@ import java.io.File
 import java.util.*
 
 @SuppressLint("ViewConstructor")
-abstract class PdfSubmissionView(context: Context) : FrameLayout(context), AnnotationManager.OnAnnotationCreationModeChangeListener, AnnotationManager.OnAnnotationEditingModeChangeListener {
+abstract class PdfSubmissionViewTrial(context: Context) : FrameLayout(context), AnnotationManager.OnAnnotationCreationModeChangeListener, AnnotationManager.OnAnnotationEditingModeChangeListener {
 
     protected lateinit var docSession: DocSession
     protected lateinit var apiValues: ApiValues
@@ -161,6 +153,7 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
     }
 
     protected fun unregisterPdfFragmentListeners() {
+//        pdfTronFragment?.currentPdfViewCtrlFragment?.pdfViewCtrl?.toolManager =
         pdfFragment?.removeOnAnnotationCreationModeChangeListener(this)
         pdfFragment?.removeOnAnnotationEditingModeChangeListener(this)
         pdfFragment?.document?.annotationProvider?.removeOnAnnotationUpdatedListener(mAnnotationUpdateListener)
@@ -290,25 +283,10 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
     }
 
     open fun setupPDFTron(uri: Uri) {
-        val config = ViewerConfig.Builder()
-                .fullscreenModeEnabled(false)
-                .showAnnotationToolbarOption(true)
-                .showDocumentSettingsOption(false)
-                .multiTabEnabled(false)
-                .documentEditingEnabled(true)
-                .longPressQuickMenuEnabled(false)
-                .autoHideToolbarEnabled(false)
-                .showSearchView(false)
-                .annotationsListEditingEnabled(true)
-                .showShareOption(false)
-                .showRightToLeftOption(false)
-                .build()
-        val newPdfTronFragment = ViewerBuilder.withUri(uri).usingConfig(config).build(context)
+        val newPdfTronFragment = ViewerBuilder.withUri(uri).build(context)
         setFragment(newPdfTronFragment)
 
         pdfTronFragment = newPdfTronFragment
-
-        pdfTronFragment?.addHostListener(hostTabDocumentListener)
     }
 
     @Suppress("EXPERIMENTAL_FEATURE_WARNING")
@@ -345,97 +323,6 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
         pdfFragment?.addDocumentListener(documentListener)
     }
 
-    private val hostTabDocumentListener = object : PdfViewCtrlTabHostFragment.TabHostListener {
-        override fun onNavButtonPressed() {}
-        override fun onExitSearchMode() {}
-        override fun onToolbarOptionsItemSelected(p0: MenuItem?): Boolean = false
-        override fun onTabHostShown() {}
-        override fun canShowFileInFolder(): Boolean = false
-        override fun onStartSearchMode() {}
-        override fun canShowFileCloseSnackbar(): Boolean = false
-        override fun onToolbarPrepareOptionsMenu(p0: Menu?): Boolean = false
-        override fun onTabChanged(p0: String?) {}
-        override fun onOpenDocError() {}
-        override fun onTabHostHidden() {}
-        override fun onTabPaused(p0: FileInfo?, p1: Boolean) {}
-        override fun canRecreateActivity(): Boolean = false
-        override fun onJumpToSdCardFolder() {}
-        override fun onToolbarCreateOptionsMenu(p0: Menu?, p1: MenuInflater?): Boolean = false
-        override fun onLastTabClosed() {}
-        override fun onShowFileInFolder(p0: String?, p1: String?, p2: Int) {}
-        override fun onTabDocumentLoaded(p0: String?) {
-            disableViewPager()
-            val toolManager = ToolManagerBuilder.from().build(pdfTronFragment!!.currentPdfViewCtrlFragment!!)
-
-            toolManager.addAnnotationsSelectionListener {
-                it.toString()
-            }
-
-            toolManager.setAnnotationToolbarListener(object: ToolManager.AnnotationToolbarListener {
-                override fun annotationToolbarHeight(): Int {
-                    return 200
-                }
-
-                override fun inkEditSelected(p0: Annot?, p1: Int) {
-                }
-
-                override fun toolbarHeight(): Int {
-                    return 200
-                }
-
-                override fun openEditToolbar(p0: ToolManager.ToolMode?) {
-                    disableViewPager()
-                }
-
-                override fun openAnnotationToolbar(p0: ToolManager.ToolMode?) {
-                    disableViewPager()
-                }
-            })
-
-            toolManager.setBasicAnnotationListener(object: ToolManager.BasicAnnotationListener {
-                override fun onAnnotationUnselected() {
-                    print("hodor")
-                }
-
-                override fun onInterceptAnnotationHandling(p0: Annot?, p1: Bundle?, p2: ToolManager.ToolMode?): Boolean {
-                    p0.toString()
-                    return false
-                }
-
-                override fun onAnnotationSelected(p0: Annot?, p1: Int) {
-                    p0.toString()
-                }
-
-                override fun onInterceptDialog(p0: AlertDialog?): Boolean {
-                    p0.toString()
-                    return false
-                }
-            })
-            // Todo - rotation? pdfTronFragment?.currentPdfViewCtrlFragment?.pdfDoc?.getPage(0)?.rotation
-            // Todo - read/write modes? pdfTronFragment?.currentPdfViewCtrlFragment?.toolManager?.isReadOnly
-
-            /*
-            annotationsJob = tryWeave {
-                // Snag them annotations with the session id
-                val annotations = awaitApi<CanvaDocAnnotationResponse> {
-                    CanvaDocsManager.getAnnotations(apiValues.sessionId, apiValues.canvaDocsDomain, it)
-                }
-
-
-//                pdfTronFragment?.currentPdfViewCtrlFragment?.pdfDoc?.getPage(0)?.annotPushBack()
-                val doc = pdfTronFragment?.currentPdfViewCtrlFragment?.pdfDoc
-                val page = pdfTronFragment?.currentPdfViewCtrlFragment?.pdfDoc?.getPage(0)
-//                highlight?.
-            } catch {
-                // Show error
-                toast(R.string.annotationErrorOccurred)
-                it.printStackTrace()
-            }
-             */
-
-        }
-    }
-
     @Suppress("EXPERIMENTAL_FEATURE_WARNING")
     private val documentListener = object : DocumentListener by DocumentListenerSimpleDelegate() {
         override fun onDocumentLoaded(pdfDocument: PdfDocument) {
@@ -468,7 +355,7 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
                     } else {
                         // We don't want to add deleted annotations to the view
                         if (!item.deleted) {
-                            val annotation = item.convertCanvaDocAnnotationToPDF(this@PdfSubmissionView.context)
+                            val annotation = item.convertCanvaDocAnnotationToPDF(this@PdfSubmissionViewTrial.context)
                             if (annotation != null) {
                                 // If the user doesn't have at least write permissions we need to lock down all annotations
                                 if (docSession.annotationMetadata?.canWrite() == false) {
@@ -513,8 +400,8 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
         fileJob?.cancel()
         fileJob = tryWeave {
             progressBar.isIndeterminate = true
-            progressBar.setColor(ContextCompat.getColor(this@PdfSubmissionView.context, R.color.defaultTextGray))
-            val teacherYellow = ContextCompat.getColor(this@PdfSubmissionView.context, progressColor)
+            progressBar.setColor(ContextCompat.getColor(this@PdfSubmissionViewTrial.context, R.color.defaultTextGray))
+            val teacherYellow = ContextCompat.getColor(this@PdfSubmissionViewTrial.context, progressColor)
 
             val jitterThreshold = 300L
             val showLoadingRunner = Runnable {
@@ -811,82 +698,82 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
 
     private fun setupPdfAnnotationDefaults() {
         pdfFragment?.annotationConfiguration?.put(
-            AnnotationType.INK,
-            InkAnnotationConfiguration.builder(context)
-                .setAvailableColors(context.resources.getIntArray(R.array.standardAnnotationColors).toMutableList())
-                .setCustomColorPickerEnabled(false)
-                .setSupportedProperties(EnumSet.of(AnnotationProperty.COLOR))
-                .setDefaultColor(ContextCompat.getColor(context, R.color.blueAnnotation))
-                .setDefaultThickness(2f)
-                .setForceDefaults(true)
-                .setZIndexEditingEnabled(false)
-                .build()
+                AnnotationType.INK,
+                InkAnnotationConfiguration.builder(context)
+                        .setAvailableColors(context.resources.getIntArray(R.array.standardAnnotationColors).toMutableList())
+                        .setCustomColorPickerEnabled(false)
+                        .setSupportedProperties(EnumSet.of(AnnotationProperty.COLOR))
+                        .setDefaultColor(ContextCompat.getColor(context, R.color.blueAnnotation))
+                        .setDefaultThickness(2f)
+                        .setForceDefaults(true)
+                        .setZIndexEditingEnabled(false)
+                        .build()
 
         )
         pdfFragment?.annotationConfiguration?.put(
-            AnnotationType.SQUARE,
-            ShapeAnnotationConfiguration.builder(context, AnnotationTool.SQUARE)
-                .setAvailableColors(context.resources.getIntArray(R.array.standardAnnotationColors).toMutableList())
-                .setCustomColorPickerEnabled(false)
-                .setSupportedProperties(EnumSet.of(AnnotationProperty.COLOR))
-                .setDefaultColor(ContextCompat.getColor(context, R.color.blueAnnotation))
-                .setDefaultThickness(2f)
-                .setDefaultAlpha(100f)
-                .setDefaultFillColor(ContextCompat.getColor(context, R.color.transparent))
-                .setDefaultBorderStylePreset(BorderStylePreset.SOLID)
-                .setZIndexEditingEnabled(false)
-                .setForceDefaults(true)
-                .build()
+                AnnotationType.SQUARE,
+                ShapeAnnotationConfiguration.builder(context, AnnotationTool.SQUARE)
+                        .setAvailableColors(context.resources.getIntArray(R.array.standardAnnotationColors).toMutableList())
+                        .setCustomColorPickerEnabled(false)
+                        .setSupportedProperties(EnumSet.of(AnnotationProperty.COLOR))
+                        .setDefaultColor(ContextCompat.getColor(context, R.color.blueAnnotation))
+                        .setDefaultThickness(2f)
+                        .setDefaultAlpha(100f)
+                        .setDefaultFillColor(ContextCompat.getColor(context, R.color.transparent))
+                        .setDefaultBorderStylePreset(BorderStylePreset.SOLID)
+                        .setZIndexEditingEnabled(false)
+                        .setForceDefaults(true)
+                        .build()
         )
         pdfFragment?.annotationConfiguration?.put(
-            AnnotationType.HIGHLIGHT,
-            MarkupAnnotationConfiguration.builder(context, AnnotationTool.HIGHLIGHT)
-                .setAvailableColors(context.resources.getIntArray(R.array.highlightAnnotationColors).toMutableList())
-                .disableProperty(AnnotationProperty.ANNOTATION_ALPHA)
-                .setDefaultColor(ContextCompat.getColor(context, R.color.yellowHighlightAnnotation))
-                .setZIndexEditingEnabled(false)
-                .setForceDefaults(true)
-                .build()
+                AnnotationType.HIGHLIGHT,
+                MarkupAnnotationConfiguration.builder(context, AnnotationTool.HIGHLIGHT)
+                        .setAvailableColors(context.resources.getIntArray(R.array.highlightAnnotationColors).toMutableList())
+                        .disableProperty(AnnotationProperty.ANNOTATION_ALPHA)
+                        .setDefaultColor(ContextCompat.getColor(context, R.color.yellowHighlightAnnotation))
+                        .setZIndexEditingEnabled(false)
+                        .setForceDefaults(true)
+                        .build()
         )
         pdfFragment?.annotationConfiguration?.put(
-            AnnotationType.STRIKEOUT,
-            MarkupAnnotationConfiguration.builder(context, AnnotationTool.STRIKEOUT)
-                .setAvailableColors(context.resources.getIntArray(R.array.standardAnnotationColors).toMutableList())
-                .setSupportedProperties(EnumSet.of(AnnotationProperty.COLOR))
-                .setDefaultColor(ContextCompat.getColor(context, R.color.redAnnotation))
-                .setForceDefaults(true)
-                .setZIndexEditingEnabled(false)
-                .build()
+                AnnotationType.STRIKEOUT,
+                MarkupAnnotationConfiguration.builder(context, AnnotationTool.STRIKEOUT)
+                        .setAvailableColors(context.resources.getIntArray(R.array.standardAnnotationColors).toMutableList())
+                        .setSupportedProperties(EnumSet.of(AnnotationProperty.COLOR))
+                        .setDefaultColor(ContextCompat.getColor(context, R.color.redAnnotation))
+                        .setForceDefaults(true)
+                        .setZIndexEditingEnabled(false)
+                        .build()
         )
         pdfFragment?.annotationConfiguration?.put(
-            AnnotationType.FREETEXT,
-            FreeTextAnnotationConfiguration.builder(context)
-                .setSupportedProperties(EnumSet.of(AnnotationProperty.COLOR))
-                .setAvailableColors(context.resources.getIntArray(R.array.standardAnnotationColors).toMutableList())
-                .setDefaultColor(ContextCompat.getColor(context, R.color.darkGrayAnnotation))
-                .setDefaultTextSize(smallFont)
-                .setDefaultFillColor(Color.TRANSPARENT)
-                .setCustomColorPickerEnabled(false)
-                .setHorizontalResizingEnabled(false)
-                .setVerticalResizingEnabled(false)
-                .setZIndexEditingEnabled(false)
-                .setForceDefaults(true)
-                .build()
+                AnnotationType.FREETEXT,
+                FreeTextAnnotationConfiguration.builder(context)
+                        .setSupportedProperties(EnumSet.of(AnnotationProperty.COLOR))
+                        .setAvailableColors(context.resources.getIntArray(R.array.standardAnnotationColors).toMutableList())
+                        .setDefaultColor(ContextCompat.getColor(context, R.color.darkGrayAnnotation))
+                        .setDefaultTextSize(smallFont)
+                        .setDefaultFillColor(Color.TRANSPARENT)
+                        .setCustomColorPickerEnabled(false)
+                        .setHorizontalResizingEnabled(false)
+                        .setVerticalResizingEnabled(false)
+                        .setZIndexEditingEnabled(false)
+                        .setForceDefaults(true)
+                        .build()
         )
         pdfFragment?.annotationConfiguration?.put(
-            AnnotationType.STAMP,
-            StampAnnotationConfiguration.builder(context)
-                .setAvailableStampPickerItems(getAppearenceStreams())
-                .setSupportedProperties(EnumSet.noneOf(AnnotationProperty::class.java))
-                .setZIndexEditingEnabled(false)
-                .build()
+                AnnotationType.STAMP,
+                StampAnnotationConfiguration.builder(context)
+                        .setAvailableStampPickerItems(getAppearenceStreams())
+                        .setSupportedProperties(EnumSet.noneOf(AnnotationProperty::class.java))
+                        .setZIndexEditingEnabled(false)
+                        .build()
         )
         pdfFragment?.annotationConfiguration?.put(
-            AnnotationTool.ERASER,
-            EraserToolConfiguration.builder()
-                .setDefaultThickness(5f)
-                .setForceDefaults(true)
-                .build()
+                AnnotationTool.ERASER,
+                EraserToolConfiguration.builder()
+                        .setDefaultThickness(5f)
+                        .setForceDefaults(true)
+                        .build()
         )
     }
 

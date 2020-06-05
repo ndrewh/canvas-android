@@ -22,5 +22,15 @@
         android:allowBackup="false"
         android:supportsRtl="true">
 
+        <meta-data
+            android:name="pdftron_license_key"
+            android:value="${pdftronLicenseKey}"/>
+
+        <!-- Document viewer activity declaration-->
+        <activity android:name="com.pdftron.pdf.controls.DocumentActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:windowSoftInputMode="adjustPan"
+            android:theme="@style/CustomAppTheme"/>
+
     </application>
 </manifest>

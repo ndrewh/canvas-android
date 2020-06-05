@@ -23,6 +23,7 @@ import android.util.AttributeSet
 import android.view.Gravity
 import android.widget.FrameLayout
 import android.widget.ImageView
+import com.bumptech.glide.Glide
 import com.instructure.canvasapi2.models.FileFolder
 import com.instructure.pandautils.utils.DP
 import com.instructure.teacher.R
@@ -108,7 +109,7 @@ class FileFolderPublishedStatusIconView @JvmOverloads constructor(
     }
 
     fun setImage(thumbnailUrl: String) {
-        Picasso.with(context).load(thumbnailUrl).into(mAssignmentIcon)
+        Glide.with(context).load(thumbnailUrl).into(mAssignmentIcon)
     }
 
     fun setPublishedStatus(fileFolder: FileFolder) {

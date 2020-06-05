@@ -45,6 +45,8 @@ android {
 
         /* BuildConfig Fields */
         buildConfigField "boolean", "IS_TESTING", isTesting()
+
+        manifestPlaceholders = [pdftronLicenseKey:PDFTRON_LICENSE_KEY]
     }
 
     buildTypes {
@@ -85,6 +87,9 @@ android {
 
 
 repositories {
+    maven {
+        url "https://pdftron-maven.s3.amazonaws.com/release"
+    }
     google()
     jcenter()
     maven { url 'https://maven.fabric.io/public' }
@@ -114,4 +119,7 @@ dependencies {
     implementation Libs.ANDROIDX_DESIGN
     implementation Libs.ANDROIDX_FRAGMENT
     implementation Libs.ANDROIDX_RECYCLERVIEW
+
+    implementation "com.pdftron:pdftron:7.1.2"
+    implementation "com.pdftron:tools:7.1.2"
 }
