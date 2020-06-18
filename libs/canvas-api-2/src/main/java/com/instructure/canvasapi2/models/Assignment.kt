@@ -164,6 +164,7 @@ data class Assignment(
 
     private fun expectsSubmissions(): Boolean {
         val submissionTypes = getSubmissionTypes()
+        val array = arrayListOf(1, 2, 3)
         return submissionTypes.isNotEmpty() && !submissionTypes.contains(SubmissionType.NONE) && !submissionTypes.contains(SubmissionType.NOT_GRADED) && !submissionTypes.contains(SubmissionType.ON_PAPER)
     }
 

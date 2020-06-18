@@ -67,9 +67,10 @@ class FileUploadService @JvmOverloads constructor(name: String = FileUploadServi
         return super.onStartCommand(intent, flags, startId)
     }
 
-    override fun onHandleIntent(intent: Intent) {
-        val action = intent.action
-        val bundle = intent.extras
+
+    override fun onHandleIntent(intent: Intent?) {
+        val action = intent!!.action
+        val bundle = intent!!.extras
 
         if (isCanceled) return
 
@@ -85,10 +86,10 @@ class FileUploadService @JvmOverloads constructor(name: String = FileUploadServi
             // This is a group assignment, we need to get the list of groups before starting uploads
             GroupManager.getGroupsSynchronous(true)
                     .find { it.groupCategoryId == assignment.groupCategoryId }
-                    ?.let { startUploads(action, fileSubmitObjects, bundle, it.id) }
+                    ?.let { startUploads(action!!, fileSubmitObjects, bundle, it.id) }
                     ?: broadcastError(notificationId, getString(R.string.errorSubmittingFiles), submissionId, assignment.name)
         } else {
-            startUploads(action, fileSubmitObjects, bundle, null)
+            startUploads(action!!, fileSubmitObjects, bundle, null)
         }
     }
 
@@ -130,7 +131,7 @@ class FileUploadService @JvmOverloads constructor(name: String = FileUploadServi
             // Submit fileIds to the assignment
             val attachmentsIds = attachments.map { it.id }.plus(bundle.getLongArray(Const.ATTACHMENTS)?.toList() ?: emptyList())
             when (action) {
-                ACTION_ASSIGNMENT_SUBMISSION -> submitAttachmentsForSubmission(courseId, assignment, attachments, attachmentsIds, bundle)
+                ACTION_ASSIGNMENT_SUBMISSION -> submitAttachmentsForSubmission(courseId, assignment!!, attachments, attachmentsIds, bundle)
                 ACTION_DISCUSSION_ATTACHMENT -> broadcastDiscussionSuccess(notificationId, attachments)
                 ACTION_QUIZ_FILE -> broadcastQuizSuccess(notificationId, attachments[0], quizQuestionId, position)
                 ACTION_MESSAGE_ATTACHMENTS -> broadcastAllUploadsCompleted(attachments)

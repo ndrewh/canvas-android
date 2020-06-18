@@ -66,13 +66,13 @@ import java.util.*
 class SpeedGraderActivity : BasePresenterActivity<SpeedGraderPresenter, SpeedGraderView>(), SpeedGraderView {
 
     /* These should be passed to the presenter factory and should not be directly referenced otherwise */
-    private val courseId: Long by lazy { intent.extras.getLong(Const.COURSE_ID) }
-    private val assignmentId: Long by lazy { intent.extras.getLong(Const.ASSIGNMENT_ID) }
-    private val submissionId: Long by lazy { intent.extras.getLong(RouterParams.SUBMISSION_ID) }
-    private val submissions: ArrayList<GradeableStudentSubmission> by lazy { intent.extras.getParcelableArrayList<GradeableStudentSubmission>(Const.SUBMISSION) ?: arrayListOf() }
-    private val discussionTopicHeader: DiscussionTopicHeader? by lazy { intent.extras.getParcelable<DiscussionTopicHeader>(Const.DISCUSSION_HEADER) }
+    private val courseId: Long by lazy { intent.extras!!.getLong(Const.COURSE_ID) }
+    private val assignmentId: Long by lazy { intent.extras!!.getLong(Const.ASSIGNMENT_ID) }
+    private val submissionId: Long by lazy { intent.extras!!.getLong(RouterParams.SUBMISSION_ID) }
+    private val submissions: ArrayList<GradeableStudentSubmission> by lazy { intent.extras!!.getParcelableArrayList<GradeableStudentSubmission>(Const.SUBMISSION) ?: arrayListOf() }
+    private val discussionTopicHeader: DiscussionTopicHeader? by lazy { intent.extras!!.getParcelable<DiscussionTopicHeader>(Const.DISCUSSION_HEADER) }
 
-    private val initialSelection: Int by lazy { intent.extras.getInt(Const.SELECTED_ITEM, 0) }
+    private val initialSelection: Int by lazy { intent.extras!!.getInt(Const.SELECTED_ITEM, 0) }
     private var currentSelection = 0
     private var previousSelection = 0
 

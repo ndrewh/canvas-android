@@ -42,7 +42,7 @@ public class SettingsBinder extends BaseBinder {
                 student.getShortName(),
                 BuildConfig.IS_TESTING);
 
-        Picasso.with(context).load(student.getAvatarUrl()).placeholder(R.drawable.ic_cv_user).error(R.drawable.ic_cv_user).fit().into(holder.avatar);
+        Picasso.get().load(student.getAvatarUrl()).placeholder(R.drawable.ic_cv_user).error(R.drawable.ic_cv_user).fit().into(holder.avatar);
         Utils.testSafeContentDescription(holder.avatar,
                 String.format(context.getString(R.string.avatar_content_desc), holder.getAdapterPosition()),
                 "", // we don't want duplicate a11y elements for this

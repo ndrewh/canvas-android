@@ -107,8 +107,8 @@ class QuizPreviewWebviewFragment : InternalWebViewFragment() {
 
         @JvmStatic
         fun newInstance(args: Bundle) = QuizPreviewWebviewFragment().apply {
-            url = args.getString(URL)
-            title = args.getString(TITLE)
+            url = args.getString(URL)!!
+            title = args.getString(TITLE)!!
         }
 
         @JvmStatic

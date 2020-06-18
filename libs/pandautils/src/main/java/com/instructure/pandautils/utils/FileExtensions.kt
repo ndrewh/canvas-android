@@ -8,7 +8,7 @@ import com.instructure.pandautils.R
 import java.io.File
 
 /** Whether or not this Uri is exposed */
-fun Uri.isExposed() = "file" == scheme && !path.startsWith("/system/")
+fun Uri.isExposed() = "file" == scheme && !path!!.startsWith("/system/")
 
 /** Wraps this file in a safe-to-expose Uri using FileProvider */
 fun File.provided(context: Context): Uri = FileProvider.getUriForFile(context, context.packageName + Const.FILE_PROVIDER_AUTHORITY, this)

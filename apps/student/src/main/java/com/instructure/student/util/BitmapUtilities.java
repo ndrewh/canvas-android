@@ -37,7 +37,7 @@ import java.io.File;
 public class BitmapUtilities {
 
     public static void lazyLoadAvatarImage(Context context, String avatarURL, ImageView view) {
-        Picasso.with(context)
+        Picasso.get()
                 .load(avatarURL)
                 .placeholder(R.drawable.vd_profile)
                 .into(view);

@@ -23,7 +23,6 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Typeface
 import android.view.View
-import com.bumptech.glide.Glide
 import com.instructure.canvasapi2.models.Author
 import com.instructure.canvasapi2.models.BasicUser
 import com.instructure.canvasapi2.models.Conversation
@@ -32,6 +31,7 @@ import com.instructure.pandautils.R
 import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 import de.hdodenhof.circleimageview.CircleImageView
+import java.lang.Exception
 
 
 object ProfileUtils {
@@ -78,14 +78,20 @@ object ProfileUtils {
     fun loadAvatarForUser(avatar: CircleImageView, name: String?, url: String?) {
         val context = avatar.context
         if (shouldLoadAltAvatarImage(url)) {
-            Glide.with(context).clear(avatar)
+            Picasso.get().cancelRequest(avatar)
             avatar.setAvatarImage(context, name)
         } else {
-            Glide.with(context)
+            Picasso.get()
                     .load(url)
+                    .fit()
                     .placeholder(R.drawable.recipient_avatar_placeholder)
                     .centerCrop()
-                    .into(avatar)
+                    .into(avatar, object : Callback {
+                        override fun onSuccess() {}
+                        override fun onError(e: Exception?) {
+                            avatar.setAvatarImage(context, name)
+                        }
+                    })
         }
     }
 

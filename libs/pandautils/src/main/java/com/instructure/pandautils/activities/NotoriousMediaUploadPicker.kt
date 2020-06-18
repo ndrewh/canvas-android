@@ -140,7 +140,7 @@ class NotoriousMediaUploadPicker : AppCompatActivity() {
             if (requestCode == RequestCodes.SELECT_MEDIA && data != null) {
                 val tempMediaUri = data.data
 
-                if (tempMediaUri == null || tempMediaUri.path == null || tempMediaUri.path.isEmpty()) {
+                if (tempMediaUri == null || tempMediaUri.path == null || tempMediaUri.path?.isEmpty() == true) {
                     setResult(Activity.RESULT_CANCELED)
                     finish()
                 } else {
@@ -160,7 +160,7 @@ class NotoriousMediaUploadPicker : AppCompatActivity() {
                         mediaUri = inBackground {
                             val fileName = FileUploadUtils.getFileNameFromUri(contentResolver, tempMediaUri)
                             val file = File(mediaStorageDir, fileName)
-                            contentResolver.openInputStream(tempMediaUri).copyTo(file)
+                            contentResolver.openInputStream(tempMediaUri)?.copyTo(file)
                             Uri.parse(file.absolutePath)
                         }
                         progressDialog.hide()

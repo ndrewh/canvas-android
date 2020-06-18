@@ -30,6 +30,7 @@ import androidx.annotation.ColorRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import com.instructure.annotations.AnnotationDialogs.AnnotationCommentDialog
 import com.instructure.annotations.AnnotationDialogs.AnnotationErrorDialog
@@ -56,6 +57,7 @@ import com.pdftron.pdf.annots.Highlight
 import com.pdftron.pdf.config.ToolManagerBuilder
 import com.pdftron.pdf.config.ViewerBuilder
 import com.pdftron.pdf.config.ViewerConfig
+import com.pdftron.pdf.controls.AnnotationToolbar
 import com.pdftron.pdf.controls.PdfViewCtrlTabHostFragment
 import com.pdftron.pdf.model.FileInfo
 import com.pdftron.pdf.tools.ToolManager
@@ -292,16 +294,11 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
     open fun setupPDFTron(uri: Uri) {
         val config = ViewerConfig.Builder()
                 .fullscreenModeEnabled(false)
-                .showAnnotationToolbarOption(true)
-                .showDocumentSettingsOption(false)
                 .multiTabEnabled(false)
-                .documentEditingEnabled(true)
-                .longPressQuickMenuEnabled(false)
                 .autoHideToolbarEnabled(false)
-                .showSearchView(false)
-                .annotationsListEditingEnabled(true)
-                .showShareOption(false)
+                .rightToLeftModeEnabled(false)
                 .showRightToLeftOption(false)
+                .documentEditingEnabled(true)
                 .build()
         val newPdfTronFragment = ViewerBuilder.withUri(uri).usingConfig(config).build(context)
         setFragment(newPdfTronFragment)
@@ -364,13 +361,80 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
         override fun onLastTabClosed() {}
         override fun onShowFileInFolder(p0: String?, p1: String?, p2: Int) {}
         override fun onTabDocumentLoaded(p0: String?) {
-            disableViewPager()
-            val toolManager = ToolManagerBuilder.from().build(pdfTronFragment!!.currentPdfViewCtrlFragment!!)
+            val toolManager = pdfTronFragment!!.currentPdfViewCtrlFragment.toolManager
 
             toolManager.addAnnotationsSelectionListener {
                 it.toString()
             }
 
+            toolManager.addAnnotationModificationListener(object: ToolManager.AnnotationModificationListener {
+                override fun onAnnotationsAdded(p0: MutableMap<Annot, Int>?) {
+                    print("hodor")
+                }
+
+                override fun annotationsCouldNotBeAdded(p0: String?) {
+
+                }
+
+                override fun onAnnotationsRemovedOnPage(p0: Int) {
+
+                }
+
+                override fun onAnnotationsPreModify(p0: MutableMap<Annot, Int>?) {
+
+                }
+
+                override fun onAnnotationsRemoved(p0: MutableMap<Annot, Int>?) {
+                    print("hodor")
+                }
+
+                override fun onAnnotationsModified(p0: MutableMap<Annot, Int>?, p1: Bundle?) {
+                    print("hodor")
+                }
+
+                override fun onAnnotationsPreRemove(p0: MutableMap<Annot, Int>?) {
+
+                }
+            })
+
+            toolManager.setBasicAnnotationListener(object: ToolManager.BasicAnnotationListener {
+                override fun onAnnotationUnselected() {
+                    print("hodor")
+                }
+
+                override fun onInterceptAnnotationHandling(p0: Annot?, p1: Bundle?, p2: ToolManager.ToolMode?): Boolean {
+                    p0.toString()
+                    return false
+                }
+
+                override fun onAnnotationSelected(p0: Annot?, p1: Int) {
+                    p0.toString()
+                }
+
+                override fun onInterceptDialog(p0: AlertDialog?): Boolean {
+                    p0.toString()
+                    return false
+                }
+            })
+
+
+
+            pdfTronFragment!!.currentPdfViewCtrlFragment.addAnnotationToolbarListener(object: AnnotationToolbar.AnnotationToolbarListener {
+                override fun onAnnotationToolbarShown() {
+                    disableViewPager()
+                }
+
+                override fun onAnnotationToolbarClosed() {
+                    enableViewPager()
+                }
+
+                override fun onShowAnnotationToolbarByShortcut(p0: Int) {}
+            })
+
+            /*
+            toolManager.addAnnotationsSelectionListener {
+                it.toString()
+            }
             toolManager.setAnnotationToolbarListener(object: ToolManager.AnnotationToolbarListener {
                 override fun annotationToolbarHeight(): Int {
                     return 200
@@ -411,6 +475,8 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
                     return false
                 }
             })
+             */
+
             // Todo - rotation? pdfTronFragment?.currentPdfViewCtrlFragment?.pdfDoc?.getPage(0)?.rotation
             // Todo - read/write modes? pdfTronFragment?.currentPdfViewCtrlFragment?.toolManager?.isReadOnly
 
@@ -1087,7 +1153,7 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
 
         val edit: ContextualToolbarMenuItem? = if (currentAnnotationModeType == AnnotationType.FREETEXT) {
             ContextualToolbarMenuItem.createSingleItem(context, View.generateViewId(),
-                    context.getDrawable(com.pspdfkit.R.drawable.pspdf__ic_edit),
+                    context.getDrawable(com.pspdfkit.R.drawable.pspdf__ic_edit)!!,
                     context.getString(com.pspdfkit.R.string.pspdf__edit), -1, -1,
                     ContextualToolbarMenuItem.Position.END, false)
         } else null
@@ -1111,7 +1177,7 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
         if (docSession.annotationMetadata?.canManage() == true && annotation?.flags?.contains(AnnotationFlags.LOCKED) == true) {
             // We need to only return a list with the delete menu item
             delete = ContextualToolbarMenuItem.createSingleItem(context, View.generateViewId(),
-                    context.getDrawable(R.drawable.vd_trash),
+                    context.getDrawable(R.drawable.vd_trash)!!,
                     context.getString(com.pspdfkit.R.string.pspdf__delete), -1, -1,
                     ContextualToolbarMenuItem.Position.END, false)
             list.add(delete)

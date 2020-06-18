@@ -24,9 +24,9 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.widget.FrameLayout
 import android.widget.ImageView
-import com.bumptech.glide.Glide
 import com.instructure.teacher.R
 import com.instructure.teacher.utils.getColorCompat
+import com.squareup.picasso.Picasso
 
 class PublishedStatusIconView @JvmOverloads constructor(
         context: Context,
@@ -107,7 +107,7 @@ class PublishedStatusIconView @JvmOverloads constructor(
     }
 
     fun setImage(thumbnailUrl: String) {
-        Glide.with(this).load(thumbnailUrl).into(mAssignmentIcon)
+        Picasso.get().load(thumbnailUrl).into(mAssignmentIcon)
     }
 
     fun setPublishedStatus(isPublished: Boolean) {

@@ -108,7 +108,7 @@ class CustomizeGradeDialog : AppCompatDialogFragment() {
                 .setNegativeButton(getString(android.R.string.cancel).toUpperCase(), null)
                 .create()
 
-        gradeDialog.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+        gradeDialog.window!!.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
 
         gradeDialog.setOnShowListener {
             gradeDialog.getButton(AppCompatDialog.BUTTON_POSITIVE).setTextColor(ThemePrefs.buttonColor)

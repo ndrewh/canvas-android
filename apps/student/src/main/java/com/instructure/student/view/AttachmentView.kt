@@ -93,7 +93,7 @@ class AttachmentView(context: Context) : FrameLayout(context) {
     private fun setThumbnail(path: String?) {
         if (path.isNullOrBlank()) return
         val file = File(path)
-        val picasso = Picasso.with(context)
+        val picasso = Picasso.get()
         val creator = if (file.exists() && file.isFile) picasso.load(file) else picasso.load(path)
         creator.fit().centerCrop().transform(ATTACHMENT_PREVIEW_TRANSFORMER).into(previewImage)
     }

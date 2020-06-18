@@ -52,8 +52,41 @@ fun convertCanvaDocAnnotationToPdfTronHighlight(canvaDocAnnotation: CanvaDocAnno
     highlight.setColor(colorPt)
     highlight.contents = canvaDocAnnotation.contents
     highlight.title = canvaDocAnnotation.userId
+    val quadPoints = convertCoordsListToQuadPoints(canvaDocAnnotation.coords)
+    quadPoints.forEachIndexed { index, quadPoint ->
+        highlight.setQuadPoint(index, quadPoint)
+    }
 
     return highlight
+}
+
+/**
+ * Quad Points: list of 4 points, p1-p4
+ * p1 - bottom Left
+ * p2 - bottom right
+ * p3 - top right
+ * p4 - top left
+ */
+fun convertRectToQuadPoint(rect: Rect): QuadPoint {
+    val p1 = Point(rect.x1, rect.y1)
+    val p2 = Point(rect.x2, rect.y1)
+    val p3 = Point(rect.x2, rect.y2)
+    val p4 = Point(rect.x1, rect.y2)
+
+    return QuadPoint(p1, p2, p3, p4)
+}
+
+fun convertCoordsListToQuadPoints(coords: List<List<List<Float>>>?): ArrayList<QuadPoint> {
+    val quadPoints = arrayListOf<QuadPoint>()
+
+    coords?.let{ rectList ->
+        rectList.forEach { rectCoords ->
+            val tempRect = Rect(rectCoords[0][0].toDouble(), rectCoords[0][1].toDouble(), rectCoords[3][0].toDouble(), rectCoords[3][1].toDouble())
+            quadPoints.add(convertRectToQuadPoint(tempRect))
+        }
+    }
+
+    return quadPoints
 }
 /*
 fun coordsToListOfRectfs(coords: List<List<List<Float>>>?) : MutableList<RectF> {

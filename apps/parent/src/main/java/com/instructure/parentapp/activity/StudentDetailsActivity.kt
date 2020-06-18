@@ -92,7 +92,7 @@ class StudentDetailsActivity : BaseParentActivity(), StudentThresholdDialog.Stud
             it.setTitle(R.string.action_settings)
             it.setNavigationOnClickListener { onBackPressed() }
         }
-        Picasso.with(this@StudentDetailsActivity)
+        Picasso.get()
                 .load(student.avatarUrl)
                 .placeholder(R.drawable.ic_cv_user)
                 .error(R.drawable.ic_cv_user)

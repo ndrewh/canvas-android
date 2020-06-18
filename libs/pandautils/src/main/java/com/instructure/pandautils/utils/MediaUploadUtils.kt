@@ -66,7 +66,7 @@ object MediaUploadUtils {
         fragment?.startActivityForResult(cameraIntent, RequestCodes.CAMERA_PIC_REQUEST)
             ?: activity.startActivityForResult(cameraIntent, RequestCodes.CAMERA_PIC_REQUEST)
 
-        return imageUri
+        return imageUri!!
     }
 
     fun chooseFromGalleryBecausePermissionsAlreadyGranted(activity: Activity) {

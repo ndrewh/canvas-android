@@ -310,7 +310,7 @@ class AttendanceListFragment : BaseSyncFragment<
         @JvmStatic
         fun newInstance(canvasContext: CanvasContext, args: Bundle) = AttendanceListFragment().apply {
             mCanvasContext = canvasContext
-            mTab = args.getParcelable(Const.TAB)
+            mTab = args.getParcelable(Const.TAB)!!
         }
     }
 }

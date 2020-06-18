@@ -259,7 +259,7 @@ public class CanvasRecipientManager implements RecipientManager {
 
     private void downloadImageWithGlide(final RecipientEntry entry, final RecipientPhotoCallback callback) {
 
-        Picasso.with(getContext()).load(entry.getAvatarUrl()).resize(150, 150).centerCrop().into(new Target() {
+        Picasso.get().load(entry.getAvatarUrl()).resize(150, 150).centerCrop().into(new Target() {
             @Override
             public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -272,7 +272,7 @@ public class CanvasRecipientManager implements RecipientManager {
             }
 
             @Override
-            public void onBitmapFailed(Drawable errorDrawable) {
+            public void onBitmapFailed(Exception e, Drawable errorDrawable) {
                 if(callback != null) {
                     callback.onPhotoBytesAsyncLoadFailed();
                 }

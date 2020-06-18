@@ -179,7 +179,7 @@
         <activity
             android:name=".activities.SpeedGraderActivity"
             android:windowSoftInputMode="adjustResize"
-            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize"
             android:launchMode="singleTask"
             android:theme="@style/PSPDFKitTheme" />
 

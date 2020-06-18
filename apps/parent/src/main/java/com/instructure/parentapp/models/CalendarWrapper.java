@@ -20,6 +20,7 @@ import android.os.Parcel;
 
 import com.instructure.canvasapi2.models.CanvasModel;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -102,6 +103,9 @@ public class CalendarWrapper extends CanvasModel<CalendarWrapper> {
     protected CalendarWrapper(Parcel in) {
         this.calendar = (Calendar) in.readSerializable();
         this.assignmentId = in.readLong();
+        ArrayList<Integer> arraylist = new ArrayList<>();
+        Integer[] arr = {}; 
+        arraylist.toArray(arr);
     }
 
     public static final Creator<CalendarWrapper> CREATOR = new Creator<CalendarWrapper>() {
