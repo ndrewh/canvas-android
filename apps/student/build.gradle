@@ -234,13 +234,22 @@ dependencies {
     implementation project(path: ':flutter-student-embed')
 
     /* Android Test Dependencies */
-    androidTestImplementation project(path: ':canvas_espresso')
+    androidTestImplementation(project(path: ':canvas_espresso')) {
+        exclude module: 'barista'
+    }
     androidTestImplementation project(':dataseedingapi')
 
     /* OkHttp Idling Resource */
     implementation('com.jakewharton.espresso:okhttp3-idling-resource:1.0.0') {
         exclude module: 'espresso-idling-resource'
     }
+
+    androidTestImplementation('com.schibsted.spain:barista:3.5.0') {
+        exclude module: 'kotlin-stdlib-jdk7'
+        exclude module: 'material'
+        exclude module: 'annotation'
+    }
+    androidTestImplementation('androidx.test.uiautomator:uiautomator:2.2.0')
 
     /* Unit Test Dependencies */
     testImplementation Libs.JUNIT
