@@ -52,12 +52,72 @@ fun convertCanvaDocAnnotationToPdfTronHighlight(canvaDocAnnotation: CanvaDocAnno
     highlight.setColor(colorPt)
     highlight.contents = canvaDocAnnotation.contents
     highlight.title = canvaDocAnnotation.userId
+    highlight.page = page
     val quadPoints = convertCoordsListToQuadPoints(canvaDocAnnotation.coords)
     quadPoints.forEachIndexed { index, quadPoint ->
         highlight.setQuadPoint(index, quadPoint)
     }
 
+    highlight.refreshAppearance()
+
     return highlight
+}
+
+fun Highlight.convertPdfTronHighlightToCanvaDocAnnotation(canvaDocId: String): CanvaDocAnnotation {
+    return CanvaDocAnnotation(
+            annotationId = this.uniqueID.asPDFText,
+            userName = ApiPrefs.user?.shortName,
+            documentId = canvaDocId,
+            subject = CanvaDocAnnotation.HIGHLIGHT_SUBJECT,
+            page = this.page.index - 1,
+            context = "",
+            width = this.borderStyle.width.toFloat(),
+            annotationType = CanvaDocAnnotation.AnnotationType.HIGHLIGHT,
+            rect = convertRectToListOfListOfFloats(this.rect),
+            coords = convertQuadPointsToListOfListOfFloats(this),
+            color = String.format("#%06X", 0xFFFFFF and Utils.colorPt2color(this.colorAsRGB)),
+            contents = this.contents,
+            isEditable = true
+    )
+}
+
+//fun Annotation.colorToHexString() = String.format("#%06X", 0xFFFFFF and this.color)
+
+fun convertRectToListOfListOfFloats(rect: Rect): ArrayList<ArrayList<Float>> {
+    val listOfLists = ArrayList<ArrayList<Float>>()
+
+    listOfLists.add(arrayListOf(rect.x1.toFloat(), rect.y2.toFloat()))
+    listOfLists.add(arrayListOf(rect.x2.toFloat(), rect.y1.toFloat()))
+
+    return listOfLists
+}
+
+fun convertQuadPointsToListOfListOfFloats(annotation: Highlight): ArrayList<ArrayList<ArrayList<Float>>> {
+    val quadPointList = ArrayList<QuadPoint>()
+    for(i in 0 until annotation.quadPointCount) {
+        quadPointList.add(annotation.getQuadPoint(i))
+    }
+
+    val rectList: ArrayList<ArrayList<ArrayList<Float>>> = ArrayList()
+
+    quadPointList.forEach { quadPoint ->
+        val posList = arrayListOf<ArrayList<Float>>()
+
+        // For readability
+        val bottom = quadPoint.p1.y.toFloat()
+        val left = quadPoint.p1.x.toFloat()
+        val right = quadPoint.p2.x.toFloat()
+        val top = quadPoint.p3.y.toFloat()
+
+        posList.add(arrayListOf(left, bottom))
+        posList.add(arrayListOf(right, bottom))
+        posList.add(arrayListOf(left, top))
+        posList.add(arrayListOf(right, top))
+
+        rectList.add(posList)
+    }
+
+    return rectList
 }
 
 /**
@@ -88,34 +148,6 @@ fun convertCoordsListToQuadPoints(coords: List<List<List<Float>>>?): ArrayList<Q
 
     return quadPoints
 }
-/*
-fun coordsToListOfRectfs(coords: List<List<List<Float>>>?) : MutableList<RectF> {
-    val rectList = mutableListOf<RectF>()
-    coords?.let {
-        it.forEach {
-            val tempRect = RectF(it[0][0], it[0][1], it[3][0], it[3][1])
-            rectList.add(tempRect)
-        }
-    }
-
-    return rectList
-}
-
-private fun convertHighlightType(canvaDocAnnotation: CanvaDocAnnotation, context: Context): HighlightAnnotation {
-    val rectList = coordsToListOfRectfs(canvaDocAnnotation.coords)
-
-    val highLightAnnotation = CanvaHighlightAnnotation(CanvaPdfAnnotation(
-            page = canvaDocAnnotation.page,
-            rectList = rectList,
-            userId = canvaDocAnnotation.userId
-    ))
-    highLightAnnotation.contents = canvaDocAnnotation.contents
-    highLightAnnotation.color = canvaDocAnnotation.getColorInt(ContextCompat.getColor(context, (R.color.canvasDefaultButton)))
-    highLightAnnotation.name = canvaDocAnnotation.annotationId
-
-    return highLightAnnotation
-}
- */
 
 fun Annotation.convertPDFAnnotationToCanvaDoc(canvaDocId: String) : CanvaDocAnnotation? {
     return when(type) {

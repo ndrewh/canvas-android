@@ -128,6 +128,8 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
     private var currentAnnotationModeType: AnnotationType? = null
     private var isUpdatingWithNoNetwork = false
 
+    private var currentAnnot: Annot? = null
+
     @get:ColorRes
     abstract val progressColor: Int
     abstract val annotationToolbarLayout: ToolbarCoordinatorLayout
@@ -245,7 +247,32 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
         layoutParams.rightMargin = marginDp.toInt()
 
         commentsButton.onClick {
-            openComments()
+//            openComments()
+            openPdfTronComments()
+        }
+    }
+
+    protected fun openPdfTronComments() {
+        if(currentAnnot != null) {
+            val currentId = currentAnnot!!.uniqueID.asPDFText
+            // If the contents of the current annotation are empty we want to prompt them to add a comment
+            if (commentRepliesHashMap[currentId] == null || commentRepliesHashMap[currentId]?.isEmpty() == true) {
+                // No comments for this annotation, show a dialog for the user to add some if they want
+                AnnotationCommentDialog.getInstance(supportFragmentManager, "", context.getString(R.string.addAnnotationComment)) { _, text ->
+                    setIsCurrentlyAnnotating(true) //don't want the sliding panel getting in the way
+                    // Create new comment reply for this annotation.
+                    if (text.isValid()) {
+                        createCommentAnnotation(currentId, currentAnnot!!.page.index - 1, text)
+                    }
+                }.show(supportFragmentManager, AnnotationCommentDialog::class.java.simpleName)
+            } else {
+                // Otherwise, show the comment list fragment
+                commentRepliesHashMap[currentId]?.let {
+                    if (it.isNotEmpty()) {
+                        showAnnotationComments(it, currentId, docSession, apiValues)
+                    }
+                }
+            }
         }
     }
 
@@ -368,8 +395,35 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
             }
 
             toolManager.addAnnotationModificationListener(object: ToolManager.AnnotationModificationListener {
-                override fun onAnnotationsAdded(p0: MutableMap<Annot, Int>?) {
-                    print("hodor")
+                override fun onAnnotationsAdded(annotationMap: MutableMap<Annot, Int>?) {
+                    val annotation = annotationMap?.keys?.first()!!
+                    // This is a new annotation; Post it
+                    commentsButton.isEnabled = false
+
+                    createAnnotationJob = tryWeave {
+                        val canvaDocAnnotation = (annotation as Highlight).convertPdfTronHighlightToCanvaDocAnnotation(apiValues.documentId)
+                        if (canvaDocAnnotation != null) {
+                            val newAnnotation = awaitApi<CanvaDocAnnotation> { CanvaDocsManager.putAnnotation(apiValues.sessionId, generateAnnotationId(), canvaDocAnnotation, apiValues.canvaDocsDomain, it) }
+
+                            // Edit the annotation with the appropriate id
+                            annotation.setUniqueID(newAnnotation.annotationId)
+//                            pdfFragment?.document?.annotationProvider?.removeOnAnnotationUpdatedListener(mAnnotationUpdateListener)
+//                            pdfFragment?.notifyAnnotationHasChanged(annotation)
+//                            pdfFragment?.document?.annotationProvider?.addOnAnnotationUpdatedListener(mAnnotationUpdateListener)
+                            commentsButton.isEnabled = true
+//                            if (annotation.type == AnnotationType.STAMP) {
+//                                commentsButton.setVisible()
+//                                openComments()
+//                            }
+
+                            annotation.refreshAppearance()
+                        }
+                    } catch {
+                        // Show general error, make more specific in the future?
+                        toast(R.string.errorOccurred)
+                        it.printStackTrace()
+                        commentsButton.isEnabled = true
+                    }
                 }
 
                 override fun annotationsCouldNotBeAdded(p0: String?) {
@@ -384,12 +438,52 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
 
                 }
 
-                override fun onAnnotationsRemoved(p0: MutableMap<Annot, Int>?) {
-                    print("hodor")
+                override fun onAnnotationsRemoved(annotationMap: MutableMap<Annot, Int>?) {
+                    val annotation = annotationMap?.keys?.first()!!
+
+                    deleteAnnotationJob = tryWeave {
+                        // If it is not found, don't hit the server (it will fail)
+                        if (annotation.uniqueID.asPDFText.isNotEmpty())
+                            awaitApi<ResponseBody> { CanvaDocsManager.deleteAnnotation(apiValues.sessionId, annotation.uniqueID.asPDFText, apiValues.canvaDocsDomain, it) }
+
+                        annotation.refreshAppearance()
+                    } catch {
+                        // Show general error, make more specific in the future?
+                        toast(R.string.errorOccurred)
+                        it.printStackTrace()
+                    }
                 }
 
-                override fun onAnnotationsModified(p0: MutableMap<Annot, Int>?, p1: Bundle?) {
-                    print("hodor")
+                override fun onAnnotationsModified(annotationMap: MutableMap<Annot, Int>?, p1: Bundle?) {
+                    val annotation = Highlight(annotationMap?.keys?.first()!!)
+
+                    // Annotation modified; Update it
+                    updateAnnotationJob = tryWeave {
+                        val canvaDocAnnotation = annotation.convertPdfTronHighlightToCanvaDocAnnotation(apiValues.documentId)
+                        if (canvaDocAnnotation != null && annotation.uniqueID.asPDFText.isNotEmpty()) {
+                            awaitApi<CanvaDocAnnotation> { CanvaDocsManager.putAnnotation(apiValues.sessionId, annotation.uniqueID.asPDFText, canvaDocAnnotation, apiValues.canvaDocsDomain, it) }
+                        }
+                    } catch {
+                        if (it is StatusCallbackError) {
+                            if (it.response?.raw()?.code() == 404) {
+                                /*
+                                // Not found; Annotation has been deleted and no longer exists.
+                                val dialog = AnnotationErrorDialog.getInstance(supportFragmentManager) {
+                                    // Delete annotation after user clicks OK on dialog
+                                    pdfFragment?.clearSelectedAnnotations()
+                                    pdfFragment?.document?.annotationProvider?.removeAnnotationFromPage(annotation)
+                                    pdfFragment?.notifyAnnotationHasChanged(annotation)
+                                }
+                                dialog.show(supportFragmentManager, AnnotationErrorDialog::class.java.simpleName)
+                                 */
+                            }
+                        }
+
+                        // Show general error, make more specific in the future?
+                        toast(R.string.errorOccurred)
+
+                        it.printStackTrace()
+                    }
                 }
 
                 override fun onAnnotationsPreRemove(p0: MutableMap<Annot, Int>?) {
@@ -400,15 +494,20 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
             toolManager.setBasicAnnotationListener(object: ToolManager.BasicAnnotationListener {
                 override fun onAnnotationUnselected() {
                     print("hodor")
+                    commentsButton.setGone()
+                    commentsButton.isEnabled = false
                 }
 
-                override fun onInterceptAnnotationHandling(p0: Annot?, p1: Bundle?, p2: ToolManager.ToolMode?): Boolean {
-                    p0.toString()
+                override fun onInterceptAnnotationHandling(annotation: Annot?, p1: Bundle?, p2: ToolManager.ToolMode?): Boolean {
                     return false
                 }
 
-                override fun onAnnotationSelected(p0: Annot?, p1: Int) {
-                    p0.toString()
+                override fun onAnnotationSelected(annotation: Annot?, p1: Int) {
+                    if(annotation != null) {
+                        currentAnnot = annotation
+                    }
+                    commentsButton.setVisible()
+                    commentsButton.isEnabled = true
                 }
 
                 override fun onInterceptDialog(p0: AlertDialog?): Boolean {
@@ -431,73 +530,38 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
                 override fun onShowAnnotationToolbarByShortcut(p0: Int) {}
             })
 
-            /*
-            toolManager.addAnnotationsSelectionListener {
-                it.toString()
-            }
-            toolManager.setAnnotationToolbarListener(object: ToolManager.AnnotationToolbarListener {
-                override fun annotationToolbarHeight(): Int {
-                    return 200
-                }
-
-                override fun inkEditSelected(p0: Annot?, p1: Int) {
-                }
-
-                override fun toolbarHeight(): Int {
-                    return 200
-                }
-
-                override fun openEditToolbar(p0: ToolManager.ToolMode?) {
-                    disableViewPager()
-                }
-
-                override fun openAnnotationToolbar(p0: ToolManager.ToolMode?) {
-                    disableViewPager()
-                }
-            })
-
-            toolManager.setBasicAnnotationListener(object: ToolManager.BasicAnnotationListener {
-                override fun onAnnotationUnselected() {
-                    print("hodor")
-                }
-
-                override fun onInterceptAnnotationHandling(p0: Annot?, p1: Bundle?, p2: ToolManager.ToolMode?): Boolean {
-                    p0.toString()
-                    return false
-                }
-
-                override fun onAnnotationSelected(p0: Annot?, p1: Int) {
-                    p0.toString()
-                }
-
-                override fun onInterceptDialog(p0: AlertDialog?): Boolean {
-                    p0.toString()
-                    return false
-                }
-            })
-             */
-
             // Todo - rotation? pdfTronFragment?.currentPdfViewCtrlFragment?.pdfDoc?.getPage(0)?.rotation
             // Todo - read/write modes? pdfTronFragment?.currentPdfViewCtrlFragment?.toolManager?.isReadOnly
 
-            /*
             annotationsJob = tryWeave {
                 // Snag them annotations with the session id
                 val annotations = awaitApi<CanvaDocAnnotationResponse> {
                     CanvaDocsManager.getAnnotations(apiValues.sessionId, apiValues.canvaDocsDomain, it)
                 }
 
+                for (item in annotations.data) {
+                    if (item.annotationType == CanvaDocAnnotation.AnnotationType.HIGHLIGHT) {
+                        val doc = pdfTronFragment?.currentPdfViewCtrlFragment?.pdfDoc!!
+                        val page = pdfTronFragment?.currentPdfViewCtrlFragment?.pdfDoc?.getPage(item.page + 1)!!
+                        val highlight = convertCanvaDocAnnotationToPdfTronHighlight(item, doc, page, context)
+                        page.annotPushBack(highlight)
+                    }
 
-//                pdfTronFragment?.currentPdfViewCtrlFragment?.pdfDoc?.getPage(0)?.annotPushBack()
-                val doc = pdfTronFragment?.currentPdfViewCtrlFragment?.pdfDoc
-                val page = pdfTronFragment?.currentPdfViewCtrlFragment?.pdfDoc?.getPage(0)
-//                highlight?.
+                    if (item.annotationType == CanvaDocAnnotation.AnnotationType.COMMENT_REPLY) {
+                        // Grab the annotation comments and store them to be displayed later when user selects annotation
+                        if (commentRepliesHashMap.containsKey(item.inReplyTo)) {
+                            commentRepliesHashMap[item.inReplyTo]?.add(item)
+                        } else {
+                            commentRepliesHashMap[item.inReplyTo!!] = arrayListOf(item)
+                        }
+                    }
+
+                }
             } catch {
                 // Show error
                 toast(R.string.annotationErrorOccurred)
                 it.printStackTrace()
             }
-             */
 
         }
     }
