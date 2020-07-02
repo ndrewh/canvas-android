@@ -30,7 +30,6 @@ import androidx.annotation.ColorRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import com.instructure.annotations.AnnotationDialogs.AnnotationCommentDialog
 import com.instructure.annotations.AnnotationDialogs.AnnotationErrorDialog
@@ -52,14 +51,14 @@ import com.instructure.pandautils.utils.setVisible
 import com.instructure.pandautils.utils.toast
 import com.instructure.pandautils.views.ProgressiveCanvasLoadingView
 import com.pdftron.pdf.Annot
-import com.pdftron.pdf.Rect
 import com.pdftron.pdf.annots.Highlight
-import com.pdftron.pdf.config.ToolManagerBuilder
 import com.pdftron.pdf.config.ViewerBuilder
 import com.pdftron.pdf.config.ViewerConfig
 import com.pdftron.pdf.controls.AnnotationToolbar
 import com.pdftron.pdf.controls.PdfViewCtrlTabHostFragment
 import com.pdftron.pdf.model.FileInfo
+import com.pdftron.pdf.tools.QuickMenu
+import com.pdftron.pdf.tools.QuickMenuItem
 import com.pdftron.pdf.tools.ToolManager
 import com.pspdfkit.annotations.Annotation
 import com.pspdfkit.annotations.AnnotationFlags
@@ -393,6 +392,38 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
             toolManager.addAnnotationsSelectionListener {
                 it.toString()
             }
+
+            toolManager.setQuickMenuListener(object: ToolManager.QuickMenuListener {
+                override fun onQuickMenuDismissed() {}
+                override fun onQuickMenuShown() {}
+                override fun onQuickMenuClicked(p0: QuickMenuItem?): Boolean {
+
+                    return false
+                }
+
+                override fun onShowQuickMenu(quickMenu: QuickMenu?, p1: Annot?): Boolean {
+                    val items: ArrayList<QuickMenuItem> = ArrayList(1)
+                    //com.pspdfkit.R.id.pspdf__annotation_creation_toolbar_item_freetext -> {
+                    items.add(QuickMenuItem(context, R.id.qm_link, QuickMenuItem.FIRST_ROW_MENU))
+                    items.add(QuickMenuItem(context, R.id.qm_copy, QuickMenuItem.FIRST_ROW_MENU))
+                    items.add(QuickMenuItem(context, R.id.qm_note, QuickMenuItem.SECOND_ROW_MENU))
+                    items.add(QuickMenuItem(context, R.id.qm_search, QuickMenuItem.FIRST_ROW_MENU))
+                    items.add(QuickMenuItem(context, R.id.qm_share, QuickMenuItem.FIRST_ROW_MENU))
+                    items.add(QuickMenuItem(context, R.id.qm_color, QuickMenuItem.SECOND_ROW_MENU))
+                    items.add(QuickMenuItem(context, R.id.qm_appearance, QuickMenuItem.SECOND_ROW_MENU))
+                    items.add(QuickMenuItem(context, R.id.qm_type, QuickMenuItem.SECOND_ROW_MENU))
+                    items.add(QuickMenuItem(context, R.id.qm_delete, QuickMenuItem.SECOND_ROW_MENU))
+                    items.add(QuickMenuItem(context, R.id.qm_overflow, QuickMenuItem.OVERFLOW_ROW_MENU))
+                    items.add(QuickMenuItem(context, R.id.qm_overflow, QuickMenuItem.FIRST_ROW_MENU))
+                    items.add(QuickMenuItem(context, R.id.qm_callout, QuickMenuItem.OVERFLOW_ROW_MENU))
+                    items.add(QuickMenuItem(context, R.id.qm_play_sound, QuickMenuItem.OVERFLOW_ROW_MENU))
+                    items.add(QuickMenuItem(context, R.id.qm_flatten, QuickMenuItem.OVERFLOW_ROW_MENU))
+                    quickMenu?.removeMenuEntries(items)
+
+                    return false
+                }
+            })
+//            toolManager.setDisableQuickMenu(true)
 
             toolManager.addAnnotationModificationListener(object: ToolManager.AnnotationModificationListener {
                 override fun onAnnotationsAdded(annotationMap: MutableMap<Annot, Int>?) {
