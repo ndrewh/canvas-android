@@ -322,9 +322,6 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
                 .fullscreenModeEnabled(false)
                 .multiTabEnabled(false)
                 .autoHideToolbarEnabled(false)
-                .rightToLeftModeEnabled(false)
-                .showRightToLeftOption(false)
-                .documentEditingEnabled(true)
                 .build()
         val newPdfTronFragment = ViewerBuilder.withUri(uri).usingConfig(config).build(context)
         setFragment(newPdfTronFragment)
@@ -397,8 +394,13 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
                 override fun onQuickMenuDismissed() {}
                 override fun onQuickMenuShown() {}
                 override fun onQuickMenuClicked(p0: QuickMenuItem?): Boolean {
+                    return if(p0?.itemId == R.id.qm_note) {
+                        openPdfTronComments()
+                        true
+                    } else {
+                        false
+                    }
 
-                    return false
                 }
 
                 override fun onShowQuickMenu(quickMenu: QuickMenu?, p1: Annot?): Boolean {
@@ -406,7 +408,7 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
                     //com.pspdfkit.R.id.pspdf__annotation_creation_toolbar_item_freetext -> {
                     items.add(QuickMenuItem(context, R.id.qm_link, QuickMenuItem.FIRST_ROW_MENU))
                     items.add(QuickMenuItem(context, R.id.qm_copy, QuickMenuItem.FIRST_ROW_MENU))
-                    items.add(QuickMenuItem(context, R.id.qm_note, QuickMenuItem.SECOND_ROW_MENU))
+//                    items.add(QuickMenuItem(context, R.id.qm_note, QuickMenuItem.SECOND_ROW_MENU))
                     items.add(QuickMenuItem(context, R.id.qm_search, QuickMenuItem.FIRST_ROW_MENU))
                     items.add(QuickMenuItem(context, R.id.qm_share, QuickMenuItem.FIRST_ROW_MENU))
                     items.add(QuickMenuItem(context, R.id.qm_color, QuickMenuItem.SECOND_ROW_MENU))
@@ -418,6 +420,8 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
                     items.add(QuickMenuItem(context, R.id.qm_callout, QuickMenuItem.OVERFLOW_ROW_MENU))
                     items.add(QuickMenuItem(context, R.id.qm_play_sound, QuickMenuItem.OVERFLOW_ROW_MENU))
                     items.add(QuickMenuItem(context, R.id.qm_flatten, QuickMenuItem.OVERFLOW_ROW_MENU))
+                    items.add(QuickMenuItem(context, R.id.qm_translate, QuickMenuItem.OVERFLOW_ROW_MENU))
+                    items.add(QuickMenuItem(context, R.id.qm_first_row_group, QuickMenuItem.FIRST_ROW_MENU))
                     quickMenu?.removeMenuEntries(items)
 
                     return false
@@ -438,14 +442,7 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
 
                             // Edit the annotation with the appropriate id
                             annotation.setUniqueID(newAnnotation.annotationId)
-//                            pdfFragment?.document?.annotationProvider?.removeOnAnnotationUpdatedListener(mAnnotationUpdateListener)
-//                            pdfFragment?.notifyAnnotationHasChanged(annotation)
-//                            pdfFragment?.document?.annotationProvider?.addOnAnnotationUpdatedListener(mAnnotationUpdateListener)
                             commentsButton.isEnabled = true
-//                            if (annotation.type == AnnotationType.STAMP) {
-//                                commentsButton.setVisible()
-//                                openComments()
-//                            }
 
                             annotation.refreshAppearance()
                         }
@@ -495,21 +492,6 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
                             awaitApi<CanvaDocAnnotation> { CanvaDocsManager.putAnnotation(apiValues.sessionId, annotation.uniqueID.asPDFText, canvaDocAnnotation, apiValues.canvaDocsDomain, it) }
                         }
                     } catch {
-                        if (it is StatusCallbackError) {
-                            if (it.response?.raw()?.code() == 404) {
-                                /*
-                                // Not found; Annotation has been deleted and no longer exists.
-                                val dialog = AnnotationErrorDialog.getInstance(supportFragmentManager) {
-                                    // Delete annotation after user clicks OK on dialog
-                                    pdfFragment?.clearSelectedAnnotations()
-                                    pdfFragment?.document?.annotationProvider?.removeAnnotationFromPage(annotation)
-                                    pdfFragment?.notifyAnnotationHasChanged(annotation)
-                                }
-                                dialog.show(supportFragmentManager, AnnotationErrorDialog::class.java.simpleName)
-                                 */
-                            }
-                        }
-
                         // Show general error, make more specific in the future?
                         toast(R.string.errorOccurred)
 
@@ -518,7 +500,6 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
                 }
 
                 override fun onAnnotationsPreRemove(p0: MutableMap<Annot, Int>?) {
-
                 }
             })
 
