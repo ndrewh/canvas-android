@@ -27,10 +27,10 @@ import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
+import android.util.Log
+import android.view.*
 import android.widget.CompoundButton
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -43,6 +43,8 @@ import androidx.core.view.MenuItemCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import com.airbnb.lottie.LottieAnimationView
+import com.airbnb.lottie.LottieComposition
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomnavigation.BottomNavigationItemView
 import com.google.android.material.bottomnavigation.BottomNavigationMenuView
@@ -69,10 +71,7 @@ import com.instructure.pandautils.receivers.PushExternalReceiver
 import com.instructure.pandautils.utils.*
 import com.instructure.student.R
 import com.instructure.student.dialog.BookmarkCreationDialog
-import com.instructure.student.events.CoreDataFinishedLoading
-import com.instructure.student.events.CourseColorOverlayToggledEvent
-import com.instructure.student.events.ShowGradesToggledEvent
-import com.instructure.student.events.UserUpdatedEvent
+import com.instructure.student.events.*
 import com.instructure.student.flutterChannels.FlutterComm
 import com.instructure.student.fragment.*
 import com.instructure.student.mobius.assignmentDetails.submission.picker.PickerSubmissionUploadEffectHandler
@@ -945,6 +944,35 @@ class NavigationActivity : BaseRouterActivity(), Navigation, MasqueradingDialog.
                 ColorUtils.colorIt(ContextCompat.getColor(context, R.color.electricBlueBadge), badge.background)
                 addView(badge)
             }
+        }
+    }
+
+    /** Handles status bar color change events posted by FlutterComm */
+    @Subscribe
+    fun updateStatusBarColor(event: StatusBarColorChangeEvent) {
+        event.get { color ->
+            if (color == Color.WHITE) {
+                ViewStyler.setStatusBarLight(this)
+            } else {
+                ViewStyler.setStatusBarDark(this, color)
+            }
+        }
+    }
+
+    /** Handles showing confetti on a successful assignment submission */
+    @Subscribe
+    fun showConfetti(event: ShowConfettiEvent) {
+        runOnUiThread {
+            val root = window.decorView.rootView as ViewGroup
+            val animation = LottieAnimationView(this).apply {
+                setAnimation("confetti.json")
+                scaleType = ImageView.ScaleType.CENTER_CROP;
+            }
+            animation.addAnimatorUpdateListener {
+                if (it.animatedFraction >= 1.0) root.removeView(animation)
+            }
+            root.addView(animation, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            animation.playAnimation()
         }
     }
 
