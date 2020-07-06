@@ -51,10 +51,12 @@ import com.instructure.pandautils.utils.setVisible
 import com.instructure.pandautils.utils.toast
 import com.instructure.pandautils.views.ProgressiveCanvasLoadingView
 import com.pdftron.pdf.Annot
+import com.pdftron.pdf.PDFViewCtrl
 import com.pdftron.pdf.annots.Highlight
 import com.pdftron.pdf.config.ViewerBuilder
 import com.pdftron.pdf.config.ViewerConfig
 import com.pdftron.pdf.controls.AnnotationToolbar
+import com.pdftron.pdf.controls.AnnotationToolbarButtonId
 import com.pdftron.pdf.controls.PdfViewCtrlTabHostFragment
 import com.pdftron.pdf.model.FileInfo
 import com.pdftron.pdf.tools.QuickMenu
@@ -384,11 +386,30 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
         override fun onLastTabClosed() {}
         override fun onShowFileInFolder(p0: String?, p1: String?, p2: Int) {}
         override fun onTabDocumentLoaded(p0: String?) {
+            pdfTronFragment?.currentPdfViewCtrlFragment?.pdfViewCtrl?.pagePresentationMode = PDFViewCtrl.PagePresentationMode.SINGLE_CONT
+
             val toolManager = pdfTronFragment!!.currentPdfViewCtrlFragment.toolManager
+
+//            pdfTronFragment?.currentPdfViewCtrlFragment?.annotationToolbar?.show(AnnotationToolbar.START_MODE_NORMAL_TOOLBAR)
+//            pdfTronFragment?.currentPdfViewCtrlFragment?.annotationToolbar?.hideButton(AnnotationToolbarButtonId.CLOSE)
+
+            pdfTronFragment?.showAnnotationToolbar(AnnotationToolbar.START_MODE_NORMAL_TOOLBAR, ToolManager.ToolMode.PAN)
 
             toolManager.addAnnotationsSelectionListener {
                 it.toString()
             }
+
+
+            toolManager!!.disableToolMode(arrayOf(
+                    ToolManager.ToolMode.SIGNATURE,
+                    ToolManager.ToolMode.STAMPER,
+                    ToolManager.ToolMode.FREE_HIGHLIGHTER,
+                    ToolManager.ToolMode.ANNOT_EDIT_RECT_GROUP,
+                    ToolManager.ToolMode.LINE_CREATE,
+                    ToolManager.ToolMode.RUBBER_STAMPER,
+                    ToolManager.ToolMode.SIGNATURE
+                )
+            )
 
             toolManager.setQuickMenuListener(object: ToolManager.QuickMenuListener {
                 override fun onQuickMenuDismissed() {}
@@ -414,7 +435,7 @@ abstract class PdfSubmissionView(context: Context) : FrameLayout(context), Annot
                     items.add(QuickMenuItem(context, R.id.qm_color, QuickMenuItem.SECOND_ROW_MENU))
                     items.add(QuickMenuItem(context, R.id.qm_appearance, QuickMenuItem.SECOND_ROW_MENU))
                     items.add(QuickMenuItem(context, R.id.qm_type, QuickMenuItem.SECOND_ROW_MENU))
-                    items.add(QuickMenuItem(context, R.id.qm_delete, QuickMenuItem.SECOND_ROW_MENU))
+//                    items.add(QuickMenuItem(context, R.id.qm_delete, QuickMenuItem.SECOND_ROW_MENU))
                     items.add(QuickMenuItem(context, R.id.qm_overflow, QuickMenuItem.OVERFLOW_ROW_MENU))
                     items.add(QuickMenuItem(context, R.id.qm_overflow, QuickMenuItem.FIRST_ROW_MENU))
                     items.add(QuickMenuItem(context, R.id.qm_callout, QuickMenuItem.OVERFLOW_ROW_MENU))
